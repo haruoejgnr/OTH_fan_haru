@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--존재하는 버그!!!!!!!!! : 게스트 친구추가한 뒤에 차단하면 추천 친구 목록에 안보입니다-->
 <html lang="ko">
 <head>
 <meta charset="utf-8">
@@ -356,12 +357,18 @@ const chatList = () => friends().filter(c => (S.chats[c.id] || []).length || S.u
 const previewOf = c => { const n = c.script && c.script.nodes[c.script.start]; const s = n && stepsOf(n).find(x => x[0] !== "aff"); return s ? s[1] : ""; };
 const unreadTotal = () => Object.values(S.unread).reduce((a, b) => a + b, 0);
 
-// 추천 목록: 차단되었거나 이미 추가된 애들을 제외한 모든 캐릭터/추천 친구
-const recs = () => [
-  ...D.characters.filter(c => S.blocked.includes(c.id)),
-  ...D.recommended.filter(r => !S.added.includes(r.id) && !S.blocked.includes(r.id))
+//1차 수정ver
+//const recs = () => [
+//  ...D.characters.filter(c => S.blocked.includes(c.id)),
+//  ...D.recommended.filter(r => !S.added.includes(r.id) && !S.blocked.includes(r.id))
+
+//2차 수정ver
+const recs = () => {
+  const blockedSet = new Set(S.blocked || []);
+  return all.filter(c => blockedSet.has(c.id) || (D.recommended.some(r => r.id === c.id) && !S.added.includes(c.id)));
+};
 ];
-//수정
+//수정완
 
 /* ---------- 화면 ---------- */
 let tab = 0, room = null, timers = [];
@@ -458,15 +465,12 @@ function viewRecs(m) {
     //b.onclick = () => { S.added.push(c.id); ensure(c); save(); render(); };
     //수정 시작
     b.onclick = () => { 
-        // 차단 목록에서 해제
         S.blocked = S.blocked.filter(id => id !== c.id);
         
-        // 추천 친구였다면 added에 추가
         if (D.recommended.some(r => r.id === c.id) && !S.added.includes(c.id)) {
             S.added.push(c.id);
         }
         
-        // ★ 확실하게 대화 상태를 처음부터로 초기화
         running[c.id] = false;
         ensure(c);
         if (c.script && c.script.start) {
@@ -524,24 +528,19 @@ function play(c) {
   const finish = () => { 
     running[c.id] = false; 
 
-    // ★ 현재 노드에 [차단] 명령어가 적혀 있다면 대화가 끝난 후 차단 발동!
     if (n.block) {
       setTimeout(() => {
-        alert(c.name + "님이 당신을 차단했습니다.");
+        alert(c.name + " 님이 당신을 차단했습니다.");
         
-        // 1. 차단 목록에 추가
         if (!S.blocked.includes(c.id)) S.blocked.push(c.id);
-        // 2. added 목록에서 제거 (추천 친구 탭으로 이동)
         S.added = S.added.filter(id => id !== c.id);
         
-        // 3. 타이머 및 실행 상태 초기화
         running[c.id] = false; 
         if (chatTimers[c.id]) {
             clearTimeout(chatTimers[c.id]);
             chatTimers[c.id] = null;
         }
 
-        // 4. 대화 기록과 진행 위치를 처음부터로 완벽 리셋
         const sc = c.script, nNode = sc && sc.nodes[sc.start];
         S.chats[c.id] = (c.history || []).map(x => x.slice());
         S.pos[c.id] = { node: sc ? sc.start : "start", k: 0 };
@@ -551,8 +550,8 @@ function play(c) {
         if (S.clear) delete S.clear[c.id];
         
         save();
-        closeRoom(); // 채팅방 창을 닫고 메인 화면으로 나감!
-        render();    // 화면 갱신 (추천 친구 탭에 가보면 차단되어 있음)
+        closeRoom();
+        render();
       }, 1000); 
 
       return;
@@ -620,21 +619,15 @@ function openFriend(c, info) {
       //btn("차단", '<svg width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="#bbb" stroke-width="4.500"><circle cx="26" cy="26" r="22"/><path d="M10 42L42 10"/></svg>', () => alert("차단 기능은 준비 중이에요."))
       //수정 시작
       btn("차단", '<svg width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="#bbb" stroke-width="4.500"><circle cx="26" cy="26" r="22"/><path d="M10 42L42 10"/></svg>', () => {
-    if (confirm(c.name + "님을 차단하시겠습니까?")) {
-        // 1. 차단 목록에 추가
+    if (confirm(c.name + " 님을 차단하시겠습니까?")) {
         if (!S.blocked.includes(c.id)) S.blocked.push(c.id);
-        
-        // ★ 2. 메인이든 추천이든 S.added에서 무조건 제거 (이래야 추천 목록 recs에 정상 노출됨)
         S.added = S.added.filter(id => id !== c.id);
-        
-        // ★ 3. 대화 실행 중지 및 예약된 타이머 완벽 취소
         running[c.id] = false; 
         if (chatTimers[c.id]) {
             clearTimeout(chatTimers[c.id]);
             chatTimers[c.id] = null;
         }
 
-        // 4. 대화 기록과 진행 위치를 완전히 처음으로 리셋
         const sc = c.script, n = sc && sc.nodes[sc.start];
         S.chats[c.id] = (c.history || []).map(x => x.slice());
         S.pos[c.id] = { node: sc ? sc.start : "start", k: 0 };
