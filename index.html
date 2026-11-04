@@ -357,16 +357,9 @@ const chatList = () => friends().filter(c => (S.chats[c.id] || []).length || S.u
 const previewOf = c => { const n = c.script && c.script.nodes[c.script.start]; const s = n && stepsOf(n).find(x => x[0] !== "aff"); return s ? s[1] : ""; };
 const unreadTotal = () => Object.values(S.unread).reduce((a, b) => a + b, 0);
 
-//1차 수정ver
-//const recs = () => [
-//  ...D.characters.filter(c => S.blocked.includes(c.id)),
-//  ...D.recommended.filter(r => !S.added.includes(r.id) && !S.blocked.includes(r.id))
-
-//2차 수정ver
-const recs = () => {
-  const blockedSet = new Set(S.blocked || []);
-  return all.filter(c => blockedSet.has(c.id) || (D.recommended.some(r => r.id === c.id) && !S.added.includes(c.id)));
-};
+const recs = () => [
+  ...D.characters.filter(c => S.blocked.includes(c.id)),
+  ...D.recommended.filter(r => !S.added.includes(r.id) && !S.blocked.includes(r.id))
 ];
 //수정완
 
