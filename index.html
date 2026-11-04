@@ -236,17 +236,7 @@ function parseAff(src, file, raw) {
 /* ---------- 저장 상태 ---------- */
 let S = null;
 try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
-//if (!S) { S = { added: [], chats: {}, unread: {}, pos: {}, aff: {}, affDone: {}, clear: {}, mail: D.mail.map(m => !!m.read), me: { ...D.me } }; D.characters.forEach(ensure); }
-//수정 시작
-if (!S) { 
-  S = { 
-    added: D.characters.map(c => c.id), // ★ 메인 캐릭터들을 기본적으로 추가된 상태로 시작
-    chats: {}, unread: {}, pos: {}, aff: {}, affDone: {}, clear: {}, 
-    mail: D.mail.map(m => !!m.read), me: { ...D.me } 
-  }; 
-  D.characters.forEach(ensure); 
-}
-//수정완
+if (!S) { S = { added: [], chats: {}, unread: {}, pos: {}, aff: {}, affDone: {}, clear: {}, mail: D.mail.map(m => !!m.read), me: { ...D.me } }; D.characters.forEach(ensure); }
 if (!S.me) S.me = { ...D.me };
 if (!S.aff) S.aff = {};        
 if (!S.affDone) S.affDone = {};
@@ -332,10 +322,7 @@ const mail = c => `<svg width="44" height="32" viewBox="0 0 44 32"><rect width="
 const gear = `<svg width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.2h-4l-.4 2.7a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.600 11a7.500 7.500 0 0 0 0 2l-2.100 1.600 2 3.500 2.500-1c.5.400 1.100.700 1.700 1l.400 2.700h4l.4-2.700c.6-.3 1.200-.6 1.700-1l2.500 1 2-3.500zM13 15.500a3.500 3.500 0 1 1 0-7 3.500 3.500 0 0 1 0 7z"/></svg>`;
 
 /* ---------- 데이터 계산 ---------- */
-//const friends = () => [...D.characters, ...D.recommended.filter(r => S.added.includes(r.id)).map(r => ({ ...r, group: r.addAs || "guest", status: r.status || "" }))];
-//수정 시작
-const friends = () => [...D.characters, ...D.recommended].filter(c => S.added.includes(c.id)).map(c => ({ ...c, group: D.characters.some(x => x.id === c.id) ? c.group : (c.addAs || "guest"), status: c.status || "" }));
-//수정완
+const friends = () => [...D.characters, ...D.recommended.filter(r => S.added.includes(r.id)).map(r => ({ ...r, group: r.addAs || "guest", status: r.status || "" }))];
 const lastOf = id => (S.chats[id] || []).filter(m => m[0] !== "line").slice(-1)[0];
 const chatList = () => friends().filter(c => (S.chats[c.id] || []).length || S.unread[c.id]);
 const previewOf = c => { const n = c.script && c.script.nodes[c.script.start]; const s = n && stepsOf(n).find(x => x[0] !== "aff"); return s ? s[1] : ""; };
