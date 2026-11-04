@@ -516,9 +516,13 @@ function openFriend(c, info) {
       //수정 시작
       btn("차단", '<svg width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="#bbb" stroke-width="4.500"><circle cx="26" cy="26" r="22"/><path d="M10 42L42 10"/></svg>', () => {
     if (confirm(c.name + "님을 차단하고 추천 친구로 보낼까요?")) {
-        // 1. 추가된 친구 목록(S.added)에서 제거하여 추천 친구 창으로 이동
+        // 1. 추가된 친구 목록(S.added)에서 제거
         S.added = S.added.filter(id => id !== c.id);
-        // 2. 대화 기록 및 스크립트 진행상황(포지션, 안 읽은 메시지 등) 초기화
+        
+        // ★ 2. 만약 즐겨찾기(fav) 등 원래 그룹에 있던 친구라면 일반 게스트 그룹으로 변경
+        if (c.group) c.group = "guest"; 
+        
+        // 3. 대화 기록 및 스크립트 진행상황 초기화
         ensure(c);
         save();
         closeFriend();
