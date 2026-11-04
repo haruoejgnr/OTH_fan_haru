@@ -55,12 +55,12 @@ window.GAME_DATA = {
       avatar: "img/doui.png",
       history: [["them", "나 말고 죽순"]], unread: 0,
       affinity: { title: "좋아하는 사람" } },
-     {
-      id: "hansegye", name: "한세계", group: "fav", status: "삶에 도파민이 없어",
+     /*{
+        id: "hansegye", name: "한세계", group: "fav", status: "삶에 도파민이 없어",
       avatar: "img/hansegye.png",
       history: [["them", "아 좋당~"]], unread: 0,
       affinity: { title: "최신 파이팅!" } },
-    },
+    },*/
 
   ],
 
