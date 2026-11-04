@@ -620,7 +620,7 @@ function openFriend(c, info) {
       //btn("차단", '<svg width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="#bbb" stroke-width="4.500"><circle cx="26" cy="26" r="22"/><path d="M10 42L42 10"/></svg>', () => alert("차단 기능은 준비 중이에요."))
       //수정 시작
       btn("차단", '<svg width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="#bbb" stroke-width="4.500"><circle cx="26" cy="26" r="22"/><path d="M10 42L42 10"/></svg>', () => {
-    if (confirm(c.name + "님을 차단하고 추천 친구로 보낼까요?")) {
+    if (confirm(c.name + "님을 차단하시겠습니까?")) {
         // 1. 차단 목록에 추가
         if (!S.blocked.includes(c.id)) S.blocked.push(c.id);
         
