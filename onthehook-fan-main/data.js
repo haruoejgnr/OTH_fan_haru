@@ -55,6 +55,13 @@ window.GAME_DATA = {
       avatar: "img/doui.png",
       history: [["them", "나 말고 죽순"]], unread: 0,
       affinity: { title: "좋아하는 사람" } },
+     {
+      id: "hansegye", name: "한세계", group: "fav", status: "삶에 도파민이 없어",
+      avatar: "img/hansegye.png",
+      history: [["them", "아 좋당~"]], unread: 0,
+      affinity: { title: "최신 파이팅!" } },
+    },
+
   ],
 
   /* 추천 친구 탭. id는 사람을 추가할때마다 r2 r3 이런 식으로 늘려주세요*/
