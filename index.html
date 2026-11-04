@@ -364,6 +364,7 @@ const recs = () => [
 
 /* ---------- 화면 ---------- */
 let tab = 0, room = null, timers = [];
+const chatTimers = {};//수정 시작 //수정완
 const el = (t, cls, txt) => { const e = document.createElement(t); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
 function safeImg(u) {
   u = String(u || "").trim();
@@ -524,7 +525,12 @@ function play(c) {
       const cur = steps[p.k], isAff = cur[0] === "aff", d = isAff ? 0 : prev && prev[0] === "line" ? WAIT : cur[0] === "me" ? 1100 : cur[0] === "line" ? 400 : 1200;
       //const cur = steps[p.k], isAff = cur[0] === "aff", d = isAff ? 0 : prev && prev[0] === "line" ? WAIT : cur[0] === "me" ? 900 : cur[0] === "line" ? 400 : 800;
       //수정 시작
-      setTimeout(() => { if (isAff) applyAff(c, cur[1], c.id + "/" + p.node + "/" + p.k); else push(c, cur[0], cur[1]); p.k++; save(); step(); }, d);
+      if (chatTimers[c.id]) clearTimeout(chatTimers[c.id]);
+      chatTimers[c.id] = setTimeout(() => { 
+        if (isAff) applyAff(c, cur[1], c.id + "/" + p.node + "/" + p.k); 
+        else push(c, cur[0], cur[1]); 
+        p.k++; save(); step(); 
+      }, d);
       //수정완
     } else if (prev && prev[0] === "line") setTimeout(finish, WAIT);
     else finish();
@@ -572,20 +578,27 @@ function openFriend(c, info) {
       //수정 시작
       btn("차단", '<svg width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="#bbb" stroke-width="4.500"><circle cx="26" cy="26" r="22"/><path d="M10 42L42 10"/></svg>', () => {
     if (confirm(c.name + "님을 차단하고 추천 친구로 보낼까요?")) {
-        // 1. 차단 목록(S.blocked)에 추가
+        // 1. 차단 목록에 추가
         if (!S.blocked.includes(c.id)) S.blocked.push(c.id);
         
-        // ★ 2. 메인이든 추천이든 S.added에서 무조건 제거 (그래야 recs에 뜸)
+        // ★ 2. 메인이든 추천이든 S.added에서 무조건 제거 (이래야 추천 목록 recs에 정상 노출됨)
         S.added = S.added.filter(id => id !== c.id);
         
-        // 3. 현재 진행 중인 대화 루프 강제 중지
+        // ★ 3. 대화 실행 중지 및 예약된 타이머 완벽 취소
         running[c.id] = false; 
-
-        // 4. 대화 기록 및 진행상황을 완전히 처음으로 강제 리셋
-        ensure(c, true);
-        if (c.script && c.script.start) {
-            S.pos[c.id] = { node: c.script.start, k: 0 };
+        if (chatTimers[c.id]) {
+            clearTimeout(chatTimers[c.id]);
+            chatTimers[c.id] = null;
         }
+
+        // 4. 대화 기록과 진행 위치를 완전히 처음으로 리셋
+        const sc = c.script, n = sc && sc.nodes[sc.start];
+        S.chats[c.id] = (c.history || []).map(x => x.slice());
+        S.pos[c.id] = { node: sc ? sc.start : "start", k: 0 };
+        S.unread[c.id] = c.unread != null ? c.unread : n ? lead(n) : 0;
+        
+        if (S.aff) delete S.aff[c.id];
+        if (S.clear) delete S.clear[c.id];
         
         save();
         closeFriend();
