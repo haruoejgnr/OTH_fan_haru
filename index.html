@@ -251,7 +251,7 @@ D.characters.concat(D.recommended.filter(r => S.added.includes(r.id))).forEach(c
   if (!(S.chats[c.id] || []).length) S.unread[c.id] = lead(n);
   save();
 });
-function ensure(c) {
+/*function ensure(c) {
   if (S.aff) delete S.aff[c.id];
   if (S.clear) delete S.clear[c.id];
   if (S.affDone) Object.keys(S.affDone).forEach(k => { if (k.startsWith(c.id + "/")) delete S.affDone[k]; });
@@ -259,7 +259,22 @@ function ensure(c) {
   S.chats[c.id] = (c.history || []).map(x => x.slice());
   S.pos[c.id] = { node: sc && sc.start, k: 0 };
   S.unread[c.id] = c.unread != null ? c.unread : n ? lead(n) : 0;
+}*/
+//수정 시작
+function ensure(c, forceReset = false) {
+  if (S.aff) delete S.aff[c.id];
+  if (S.clear) delete S.clear[c.id];
+  if (S.affDone) Object.keys(S.affDone).forEach(k => { if (k.startsWith(c.id + "/")) delete S.affDone[k]; });
+  const sc = c.script, n = sc && sc.nodes[sc.start];
+  
+  // ★ 강제 리셋이거나 기존 채팅 기록이 없을 때만 처음부터 세팅
+  if (forceReset || !S.chats[c.id] || !S.chats[c.id].length) {
+    S.chats[c.id] = (c.history || []).map(x => x.slice());
+    S.pos[c.id] = { node: sc && sc.start, k: 0 };
+    S.unread[c.id] = c.unread != null ? c.unread : n ? lead(n) : 0;
+  }
 }
+//수정완
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); return true; } catch (e) { return false; } }
 
 /* ---------- 호감도 ---------- */
@@ -459,7 +474,7 @@ function viewRecs(m) {
         save(); 
         render(); 
     };
-    //수정완
+    //수정완    
     r.append(avatar(c), el("div", "nm mid", c.name), b); m.append(r);
   });
 }
@@ -560,14 +575,14 @@ function openFriend(c, info) {
         // 1. 차단 목록(S.blocked)에 추가
         if (!S.blocked.includes(c.id)) S.blocked.push(c.id);
         
-        // 2. 만약 추천 친구였다면 S.added에서도 제거
+        // ★ 2. 메인이든 추천이든 S.added에서 무조건 제거 (그래야 recs에 뜸)
         S.added = S.added.filter(id => id !== c.id);
         
-        // ★ 3. 현재 진행 중인 대화 루프를 강제로 차단하고 중지시킴
+        // 3. 현재 진행 중인 대화 루프 강제 중지
         running[c.id] = false; 
 
-        // 4. 대화 기록 및 진행상황을 완전히 처음으로 리셋
-        ensure(c);
+        // 4. 대화 기록 및 진행상황을 완전히 처음으로 강제 리셋
+        ensure(c, true);
         if (c.script && c.script.start) {
             S.pos[c.id] = { node: c.script.start, k: 0 };
         }
