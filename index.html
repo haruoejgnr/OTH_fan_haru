@@ -513,6 +513,7 @@ function openFriend(c, info) {
       btn("대화하기", '<svg width="64" height="52" viewBox="0 0 64 52"><path d="M6 4h52a4 4 0 0 1 4 4v26a4 4 0 0 1-4 4H34L24 48V38H6a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4z" fill="#4ac9c4"/><g fill="#fff"><circle cx="20" cy="21" r="3.5"/><circle cx="32" cy="21" r="3.5"/><circle cx="44" cy="21" r="3.5"/></g></svg>', () => { closeFriend(); openRoom(c); }),
       btn("정보", '<svg width="52" height="52" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="#4ac9c4"/><rect x="23" y="22" width="6" height="18" rx="2" fill="#fff"/><circle cx="26" cy="14.500" r="3.500" fill="#fff"/></svg>', () => openFriend(c, true)),
       //btn("차단", '<svg width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="#bbb" stroke-width="4.500"><circle cx="26" cy="26" r="22"/><path d="M10 42L42 10"/></svg>', () => alert("차단 기능은 준비 중이에요."))
+      //수정 시작
       btn("차단", '<svg width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="#bbb" stroke-width="4.500"><circle cx="26" cy="26" r="22"/><path d="M10 42L42 10"/></svg>', () => {
     if (confirm(c.name + "님을 차단하고 추천 친구로 보낼까요?")) {
         // 1. 추가된 친구 목록(S.added)에서 제거하여 추천 친구 창으로 이동
@@ -524,7 +525,7 @@ function openFriend(c, info) {
         render();
     }
 })
-    
+    //수정완
     );
     b.append(a, el("h2", "", c.name), el("div", "fst", c.status || ""), document.createElement("hr"), acts);
   }
