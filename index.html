@@ -467,9 +467,11 @@ function play(c) {
   (function step() {
     let prev; for (let i = p.k - 1; i >= 0; i--) if (steps[i][0] !== "aff") { prev = steps[i]; break; }   /* 호감도 줄은 대기 시간 계산에서 제외 */
     if (p.k < steps.length) {
-      const cur = steps[p.k], isAff = cur[0] === "aff", d = isAff ? 0 : prev && prev[0] === "line" ? WAIT : cur[0] === "me" ? 1500 : cur[0] === "line" ? 400 : 1500;
+      const cur = steps[p.k], isAff = cur[0] === "aff", d = isAff ? 0 : prev && prev[0] === "line" ? WAIT : cur[0] === "me" ? 1100 : cur[0] === "line" ? 400 : 1200;
       //const cur = steps[p.k], isAff = cur[0] === "aff", d = isAff ? 0 : prev && prev[0] === "line" ? WAIT : cur[0] === "me" ? 900 : cur[0] === "line" ? 400 : 800;
+      //수정 시작
       setTimeout(() => { if (isAff) applyAff(c, cur[1], c.id + "/" + p.node + "/" + p.k); else push(c, cur[0], cur[1]); p.k++; save(); step(); }, d);
+      //수정완
     } else if (prev && prev[0] === "line") setTimeout(finish, WAIT);
     else finish();
   })();
@@ -516,24 +518,26 @@ function openFriend(c, info) {
       //수정 시작
       btn("차단", '<svg width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="#bbb" stroke-width="4.500"><circle cx="26" cy="26" r="22"/><path d="M10 42L42 10"/></svg>', () => {
     if (confirm(c.name + "님을 차단하고 추천 친구로 보낼까요?")) {
-        // 1. 추가된 친구 목록(S.added)에서 확실하게 제거
+        // 1. 추가된 친구 목록(S.added)에서 확실하게 제거 (친구/즐겨찾기 목록에서 지움)
         if (S.added) {
             S.added = S.added.filter(id => id !== c.id);
         }
         
-        // 2. 즐겨찾기 그룹("fav")을 해제하고 일반("guest") 그룹으로 강제 변경
-        c.group = "guest"; 
-        
-        // 3. 혹시 엔진 내부에서 즐겨찾기 목록 배열을 따로 관리한다면 거기도 제거 (안전장치)
-        if (window.S && S.favs) {
-            S.favs = S.favs.filter(id => id !== c.id);
+        // 2. 즐겨찾기 그룹(fav)이었던 친구라면 그룹 속성을 해제하여 추천 목록(recs)에 잡히도록 변경
+        if (c.group === "fav" || c.group === "guest") {
+            c.group = ""; // 또는 게임에서 기본값으로 쓰는 빈 값이나 추천용 상태로 변경
         }
-
-        // 4. 대화 기록 및 스크립트 진행상황 초기화
+        
+        // 3. 대화 기록 및 스크립트 진행상황을 완전히 초기화 (다시 추가하면 처음부터 시작되도록)
         ensure(c);
+        if (S.pos && S.pos[c.id]) {
+            S.pos[c.id] = { node: Object.keys(c.script.nodes)[0], k: 0 };
+        }
+        
+        // 4. 저장 후 창 닫고 화면 다시 그리기
         save();
         closeFriend();
-        render();
+        render(); // 이제 recs() 함수가 이 친구를 감지하고 [추천 친구] 창에 띄워줍니다!
     }
 })
     //수정완
