@@ -21,7 +21,7 @@ window.GAME_DATA = {
   characters: [
     {
       id: "haru", name: "하루", group: "fav", status: "오늘도 즐거운 하루!",
-      avatar: "img/haru.png",
+      avatar: "img/haru_psa.png",
       scriptFile: "scripts/haru.txt",        // ← 대화는 이 txt 파일에서 읽어옴
       affinity: { level: 15, color: "#55c4b4", dot: false, title: "누구지?",
         stages: [ 
