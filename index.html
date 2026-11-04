@@ -527,7 +527,7 @@ function play(c) {
     // ★ 현재 노드에 [차단] 명령어가 적혀 있다면 대화가 끝난 후 차단 발동!
     if (n.block) {
       setTimeout(() => {
-        alert(c.name + "님과의 대화가 종료되어 차단되었습니다.");
+        alert(c.name + "님이 당신을 차단했습니다.");
         
         // 1. 차단 목록에 추가
         if (!S.blocked.includes(c.id)) S.blocked.push(c.id);
