@@ -20,16 +20,16 @@ window.GAME_DATA = {
 
   characters: [
     {
-      id: "hansegye", name: "한세계", group: "fav", status: "삶에 도파민이 없어",
-      avatar: "img/hansegye.png",
-      scriptFile: "scripts/hansegye.txt",        // ← 대화는 이 txt 파일에서 읽어옴
-      affinity: { level: 15, color: "#55c4b4", dot: false, title: "스레기의 그녀",
+      id: "haru", name: "하루", group: "fav", status: "오늘도 즐거운 하루!",
+      avatar: "img/haru.png",
+      scriptFile: "scripts/haru.txt",        // ← 대화는 이 txt 파일에서 읽어옴
+      affinity: { level: 15, color: "#55c4b4", dot: false, title: "누구지?",
         stages: [ 
-          { from: 30, title: "귀찮긴 해도…" },
-          { from: 50, title: "일단은 친구?" },
-          { from: 65, title: "언니라고 부를래~" },
-          { from: 80, title: "나는 안돼?" },
-          { from: 100, title: "헤헷, 이미 늦었다구?" },
+          { from: 30, title: "친구의 친구" },
+          { from: 50, title: "내 친구" },
+          { from: 65, title: "특별한 친구" },
+          { from: 80, title: "신경쓰이는 친구" },
+          { from: 100, title: "좋아하는 친구" },
         ],
       },
     },
@@ -55,6 +55,13 @@ window.GAME_DATA = {
       avatar: "img/doui.png",
       history: [["them", "나 말고 죽순"]], unread: 0,
       affinity: { title: "좋아하는 사람" } },
+     {
+      id: "hansegye", name: "한세계", group: "fav", status: "삶에 도파민이 없어",
+      avatar: "img/hansegye.png",
+      history: [["them", "아 좋당~"]], unread: 0,
+      affinity: { title: "최신 파이팅!" } },
+    },
+
   ],
 
   /* 추천 친구 탭. id는 사람을 추가할때마다 r2 r3 이런 식으로 늘려주세요*/
@@ -66,5 +73,8 @@ window.GAME_DATA = {
   /* 쪽지 탭 */
   mail: [
     { from: "세계의 한마디", text: "안녕하세요… 해당 틀을 사용하는 트친이 있다면 세계의 한마디 속 최신 화이팅!은 남겨주시길….", read: false },
+  ],
+   mail: [
+    { from: "고리의 한마디", text: "여주 입장에서 귀여운 하루를 꼬셔보세요~ 다들 하루 딸처럼 아껴주시고 좋아해서 저도 너무 행복합니다. 감사합니다. 이 틀을 배포해주신 세계님께 감사를!!", read: false },
   ],
 };
