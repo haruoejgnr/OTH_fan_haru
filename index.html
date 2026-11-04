@@ -193,6 +193,7 @@ function parseScript(txt, file) {
       else if ((x = t.match(/^(\d+)\s*번\s*선택$/))) open(owner + "_" + x[1], false);
       else if ((x = t.match(/^이동\s*[:：]?\s*(.+)$/))) cur.next = x[1].trim();
       else if (t === "끝") cur.end = true;
+      else if (t === "차단") cur.block = true;//수정 시작 //수정완
       else if ((x = t.match(/^호감도(?:\s+(.*))?$/))) { const sp = parseAff(x[1] || "", file, t); if (sp) cur.lines.push(["aff", sp]); }
       else if ((x = t.match(/^구분선\s*[:：]?\s*(.*)$/))) cur.lines.push(["line", x[1]]);
       continue;
@@ -518,7 +519,49 @@ function play(c) {
   if (!n || running[c.id]) return;
   const steps = stepsOf(n); running[c.id] = true;
   const WAIT = D.dividerWait != null ? D.dividerWait : 5000;   /* 구분선 뒤 대기(ms) */
-  const finish = () => { running[c.id] = false; if (n.choices) showChoices(); else if (n.next) go(c, n.next); };
+  //const finish = () => { running[c.id] = false; if (n.choices) showChoices(); else if (n.next) go(c, n.next); };
+  //수정 시작
+  const finish = () => { 
+    running[c.id] = false; 
+
+    // ★ 현재 노드에 [차단] 명령어가 적혀 있다면 대화가 끝난 후 차단 발동!
+    if (n.block) {
+      setTimeout(() => {
+        alert(c.name + "님과의 대화가 종료되어 차단되었습니다.");
+        
+        // 1. 차단 목록에 추가
+        if (!S.blocked.includes(c.id)) S.blocked.push(c.id);
+        // 2. added 목록에서 제거 (추천 친구 탭으로 이동)
+        S.added = S.added.filter(id => id !== c.id);
+        
+        // 3. 타이머 및 실행 상태 초기화
+        running[c.id] = false; 
+        if (chatTimers[c.id]) {
+            clearTimeout(chatTimers[c.id]);
+            chatTimers[c.id] = null;
+        }
+
+        // 4. 대화 기록과 진행 위치를 처음부터로 완벽 리셋
+        const sc = c.script, nNode = sc && sc.nodes[sc.start];
+        S.chats[c.id] = (c.history || []).map(x => x.slice());
+        S.pos[c.id] = { node: sc ? sc.start : "start", k: 0 };
+        S.unread[c.id] = c.unread != null ? c.unread : nNode ? lead(nNode) : 0;
+        
+        if (S.aff) delete S.aff[c.id];
+        if (S.clear) delete S.clear[c.id];
+        
+        save();
+        closeRoom(); // 채팅방 창을 닫고 메인 화면으로 나감!
+        render();    // 화면 갱신 (추천 친구 탭에 가보면 차단되어 있음)
+      }, 1000); 
+
+      return;
+    }
+
+    if (n.choices) showChoices(); 
+    else if (n.next) go(c, n.next); 
+  };
+  //수정완
   (function step() {
     let prev; for (let i = p.k - 1; i >= 0; i--) if (steps[i][0] !== "aff") { prev = steps[i]; break; }   /* 호감도 줄은 대기 시간 계산에서 제외 */
     if (p.k < steps.length) {
@@ -531,7 +574,7 @@ function play(c) {
         else push(c, cur[0], cur[1]); 
         p.k++; save(); step(); 
       }, d);
-      //수정완
+      //수정완    
     } else if (prev && prev[0] === "line") setTimeout(finish, WAIT);
     else finish();
   })();
