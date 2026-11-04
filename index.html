@@ -467,7 +467,8 @@ function play(c) {
   (function step() {
     let prev; for (let i = p.k - 1; i >= 0; i--) if (steps[i][0] !== "aff") { prev = steps[i]; break; }   /* 호감도 줄은 대기 시간 계산에서 제외 */
     if (p.k < steps.length) {
-      const cur = steps[p.k], isAff = cur[0] === "aff", d = isAff ? 0 : prev && prev[0] === "line" ? WAIT : cur[0] === "me" ? 900 : cur[0] === "line" ? 400 : 800;
+      const cur = steps[p.k], isAff = cur[0] === "aff", d = isAff ? 0 : prev && prev[0] === "line" ? WAIT : cur[0] === "me" ? 1500 : cur[0] === "line" ? 400 : 1500;
+      //const cur = steps[p.k], isAff = cur[0] === "aff", d = isAff ? 0 : prev && prev[0] === "line" ? WAIT : cur[0] === "me" ? 900 : cur[0] === "line" ? 400 : 800;
       setTimeout(() => { if (isAff) applyAff(c, cur[1], c.id + "/" + p.node + "/" + p.k); else push(c, cur[0], cur[1]); p.k++; save(); step(); }, d);
     } else if (prev && prev[0] === "line") setTimeout(finish, WAIT);
     else finish();
