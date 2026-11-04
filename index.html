@@ -518,26 +518,29 @@ function openFriend(c, info) {
       //수정 시작
       btn("차단", '<svg width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="#bbb" stroke-width="4.500"><circle cx="26" cy="26" r="22"/><path d="M10 42L42 10"/></svg>', () => {
     if (confirm(c.name + "님을 차단하고 추천 친구로 보낼까요?")) {
-        // 1. 추가된 친구 목록(S.added)에서 확실하게 제거 (친구/즐겨찾기 목록에서 지움)
+        // 1. 추가된 친구 목록(S.added)에서 확실하게 제거
         if (S.added) {
             S.added = S.added.filter(id => id !== c.id);
         }
         
-        // 2. 즐겨찾기 그룹(fav)이었던 친구라면 그룹 속성을 해제하여 추천 목록(recs)에 잡히도록 변경
-        if (c.group === "fav" || c.group === "guest") {
-            c.group = ""; // 또는 게임에서 기본값으로 쓰는 빈 값이나 추천용 상태로 변경
+        // 2. 만약 추천 목록(D.recommended)에 원래 없는 메인 캐릭터라면 추천 목록 배열에 강제로 추가해줌
+        if (!D.recommended.some(r => r.id === c.id)) {
+            D.recommended.push(c);
         }
+
+        // 3. 그룹을 게스트 상태로 변경하여 UI에 반영되도록 함
+        c.group = "guest"; 
         
-        // 3. 대화 기록 및 스크립트 진행상황을 완전히 초기화 (다시 추가하면 처음부터 시작되도록)
+        // 4. 대화 기록 및 스크립트 진행상황 완전히 초기화 (처음부터 시작)
         ensure(c);
         if (S.pos && S.pos[c.id]) {
             S.pos[c.id] = { node: Object.keys(c.script.nodes)[0], k: 0 };
         }
         
-        // 4. 저장 후 창 닫고 화면 다시 그리기
+        // 5. 저장 후 창 닫고 화면 다시 그리기
         save();
         closeFriend();
-        render(); // 이제 recs() 함수가 이 친구를 감지하고 [추천 친구] 창에 띄워줍니다!
+        render(); 
     }
 })
     //수정완
