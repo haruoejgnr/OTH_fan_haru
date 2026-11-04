@@ -441,18 +441,24 @@ function viewRecs(m) {
     //b.onclick = () => { S.added.push(c.id); ensure(c); save(); render(); };
     //수정 시작
     b.onclick = () => { 
-    // 차단 목록에서 해제
-    S.blocked = S.blocked.filter(id => id !== c.id);
-    
-    // 추천 친구였다면 added에 추가, 메인 캐릭터였다면 알아서 원래 즐겨찾기로 복귀됨
-    if (D.recommended.some(r => r.id === c.id) && !S.added.includes(c.id)) {
-        S.added.push(c.id);
-    }
-    
-    ensure(c); 
-    save(); 
-    render(); 
-};
+        // 차단 목록에서 해제
+        S.blocked = S.blocked.filter(id => id !== c.id);
+        
+        // 추천 친구였다면 added에 추가
+        if (D.recommended.some(r => r.id === c.id) && !S.added.includes(c.id)) {
+            S.added.push(c.id);
+        }
+        
+        // ★ 확실하게 대화 상태를 처음부터로 초기화
+        running[c.id] = false;
+        ensure(c);
+        if (c.script && c.script.start) {
+            S.pos[c.id] = { node: c.script.start, k: 0 };
+        }
+        
+        save(); 
+        render(); 
+    };
     //수정완
     r.append(avatar(c), el("div", "nm mid", c.name), b); m.append(r);
   });
@@ -557,10 +563,13 @@ function openFriend(c, info) {
         // 2. 만약 추천 친구였다면 S.added에서도 제거
         S.added = S.added.filter(id => id !== c.id);
         
-        // 3. 대화 기록 및 진행상황 초기화 (다시 추가하면 처음부터 시작)
+        // ★ 3. 현재 진행 중인 대화 루프를 강제로 차단하고 중지시킴
+        running[c.id] = false; 
+
+        // 4. 대화 기록 및 진행상황을 완전히 처음으로 리셋
         ensure(c);
-        if (S.pos && S.pos[c.id]) {
-            S.pos[c.id] = { node: Object.keys(c.script.nodes)[0], k: 0 };
+        if (c.script && c.script.start) {
+            S.pos[c.id] = { node: c.script.start, k: 0 };
         }
         
         save();
