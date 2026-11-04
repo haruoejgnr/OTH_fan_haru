@@ -237,6 +237,7 @@ function parseAff(src, file, raw) {
 let S = null;
 try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
 if (!S) { S = { added: [], chats: {}, unread: {}, pos: {}, aff: {}, affDone: {}, clear: {}, mail: D.mail.map(m => !!m.read), me: { ...D.me } }; D.characters.forEach(ensure); }
+if (!S.blocked) S.blocked = []; //수정 시작 //수정완
 if (!S.me) S.me = { ...D.me };
 if (!S.aff) S.aff = {};        
 if (!S.affDone) S.affDone = {};
@@ -322,12 +323,29 @@ const mail = c => `<svg width="44" height="32" viewBox="0 0 44 32"><rect width="
 const gear = `<svg width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.2h-4l-.4 2.7a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.600 11a7.500 7.500 0 0 0 0 2l-2.100 1.600 2 3.500 2.500-1c.5.400 1.100.700 1.700 1l.400 2.700h4l.4-2.700c.6-.3 1.200-.6 1.700-1l2.500 1 2-3.500zM13 15.500a3.500 3.500 0 1 1 0-7 3.500 3.500 0 0 1 0 7z"/></svg>`;
 
 /* ---------- 데이터 계산 ---------- */
-const friends = () => [...D.characters, ...D.recommended.filter(r => S.added.includes(r.id)).map(r => ({ ...r, group: r.addAs || "guest", status: r.status || "" }))];
+/*const friends = () => [...D.characters, ...D.recommended.filter(r => S.added.includes(r.id)).map(r => ({ ...r, group: r.addAs || "guest", status: r.status || "" }))];
 const lastOf = id => (S.chats[id] || []).filter(m => m[0] !== "line").slice(-1)[0];
 const chatList = () => friends().filter(c => (S.chats[c.id] || []).length || S.unread[c.id]);
 const previewOf = c => { const n = c.script && c.script.nodes[c.script.start]; const s = n && stepsOf(n).find(x => x[0] !== "aff"); return s ? s[1] : ""; };
 const unreadTotal = () => Object.values(S.unread).reduce((a, b) => a + b, 0);
-const recs = () => D.recommended.filter(r => !S.added.includes(r.id));
+const recs = () => D.recommended.filter(r => !S.added.includes(r.id));*/
+//수정 시작
+const friends = () => [
+  ...D.characters.filter(c => !S.blocked.includes(c.id)), 
+  ...D.recommended.filter(r => S.added.includes(r.id) && !S.blocked.includes(r.id)).map(r => ({ ...r, group: r.addAs || "guest", status: r.status || "" }))
+];
+
+const lastOf = id => (S.chats[id] || []).filter(m => m[0] !== "line").slice(-1)[0];
+const chatList = () => friends().filter(c => (S.chats[c.id] || []).length || S.unread[c.id]);
+const previewOf = c => { const n = c.script && c.script.nodes[c.script.start]; const s = n && stepsOf(n).find(x => x[0] !== "aff"); return s ? s[1] : ""; };
+const unreadTotal = () => Object.values(S.unread).reduce((a, b) => a + b, 0);
+
+// 추천 목록: 차단되었거나 이미 추가된 애들을 제외한 모든 캐릭터/추천 친구
+const recs = () => [
+  ...D.characters.filter(c => S.blocked.includes(c.id)),
+  ...D.recommended.filter(r => !S.added.includes(r.id) && !S.blocked.includes(r.id))
+];
+//수정
 
 /* ---------- 화면 ---------- */
 let tab = 0, room = null, timers = [];
@@ -420,7 +438,22 @@ function viewRecs(m) {
   const l = recs(); if (!l.length) return m.append(el("div", "empty", "추천할 친구가 더 없어요."));
   l.forEach(c => {
     const r = el("div", "row"), b = el("button", "add"); b.innerHTML = fish("#aaa", 34, 1); b.setAttribute("aria-label", c.name + " 친구 추가");
-    b.onclick = () => { S.added.push(c.id); ensure(c); save(); render(); };
+    //b.onclick = () => { S.added.push(c.id); ensure(c); save(); render(); };
+    //수정 시작
+    b.onclick = () => { 
+    // 차단 목록에서 해제
+    S.blocked = S.blocked.filter(id => id !== c.id);
+    
+    // 추천 친구였다면 added에 추가, 메인 캐릭터였다면 알아서 원래 즐겨찾기로 복귀됨
+    if (D.recommended.some(r => r.id === c.id) && !S.added.includes(c.id)) {
+        S.added.push(c.id);
+    }
+    
+    ensure(c); 
+    save(); 
+    render(); 
+};
+    //수정완
     r.append(avatar(c), el("div", "nm mid", c.name), b); m.append(r);
   });
 }
@@ -518,29 +551,21 @@ function openFriend(c, info) {
       //수정 시작
       btn("차단", '<svg width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="#bbb" stroke-width="4.500"><circle cx="26" cy="26" r="22"/><path d="M10 42L42 10"/></svg>', () => {
     if (confirm(c.name + "님을 차단하고 추천 친구로 보낼까요?")) {
-        // 1. 추가된 친구 목록(S.added)에서 확실하게 제거
-        if (S.added) {
-            S.added = S.added.filter(id => id !== c.id);
-        }
+        // 1. 차단 목록(S.blocked)에 추가
+        if (!S.blocked.includes(c.id)) S.blocked.push(c.id);
         
-        // 2. 만약 추천 목록(D.recommended)에 원래 없는 메인 캐릭터라면 추천 목록 배열에 강제로 추가해줌
-        if (!D.recommended.some(r => r.id === c.id)) {
-            D.recommended.push(c);
-        }
-
-        // 3. 그룹을 게스트 상태로 변경하여 UI에 반영되도록 함
-        c.group = "guest"; 
+        // 2. 만약 추천 친구였다면 S.added에서도 제거
+        S.added = S.added.filter(id => id !== c.id);
         
-        // 4. 대화 기록 및 스크립트 진행상황 완전히 초기화 (처음부터 시작)
+        // 3. 대화 기록 및 진행상황 초기화 (다시 추가하면 처음부터 시작)
         ensure(c);
         if (S.pos && S.pos[c.id]) {
             S.pos[c.id] = { node: Object.keys(c.script.nodes)[0], k: 0 };
         }
         
-        // 5. 저장 후 창 닫고 화면 다시 그리기
         save();
         closeFriend();
-        render(); 
+        render();
     }
 })
     //수정완
